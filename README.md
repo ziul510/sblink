@@ -1,6 +1,7 @@
 # sblink for Go
 
-A portable SimBrief linker for MSFS on Windows x64. The release is one `sblink.exe`.
+A portable SimBrief linker for MSFS on Windows x64. The Go rewrite starts at version `v1.5`.
+The release is one `sblink.exe`.
 There are no Go modules to download and no Python or Go installation is needed to use it.
 
 ## Use
@@ -113,14 +114,15 @@ the published source tree.
 
 GitHub Actions builds Windows x64 on every push to `main`, when a release is published,
 and when started manually from the Actions page. Each build runs vet and formatting checks.
-The downloadable artifact contains the ZIP and its SHA-256 checksum and is retained for 14 days.
-Publishing a release also attaches both files to that release for distribution.
+The downloadable Actions artifact contains the ZIP and its SHA-256 checksum and is retained for
+90 days. Publishing a release also attaches both files to that release for ongoing distribution.
 
 To publish an update:
 
 1. Push your source changes to `main` and wait for the Actions build to pass.
 2. Open the repository Releases page and choose Draft a new release.
-3. Create a new tag such as `v1.0.0`, targeting `main`; use a new tag for every update.
+3. Create a new tag targeting `main`; start with `v1.5` and use a new tag for every update,
+   such as `v1.5.1` for a fix or `v1.6` for a larger update.
 4. Enter the release title and notes, then choose Publish release.
 5. Wait for Build Windows release to finish. Download `sblink-windows-x64.zip` from
    the release Assets section, then use that ZIP for your Flightsim.to upload.

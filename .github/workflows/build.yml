@@ -60,7 +60,7 @@ jobs:
           name: sblink-windows-x64
           path: output/*
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90
       - name: Attach files to published release
         if: github.event_name == 'release'
         shell: pwsh
