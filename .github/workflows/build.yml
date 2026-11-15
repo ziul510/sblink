@@ -17,6 +17,7 @@ jobs:
       CGO_ENABLED: '0'
       GOOS: windows
       GOARCH: amd64
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -38,6 +39,8 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          if ($env:RELEASE_TAG -cnotmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$') { throw 'Release tag contains unsupported filename characters' }
+          $zipName = "sblink-$($env:RELEASE_TAG)-x64.zip"
           New-Item -ItemType Directory -Path package, output | Out-Null
           go build -trimpath -ldflags '-H=windowsgui -s -w' -o package/sblink.exe .
           if ($LASTEXITCODE -ne 0) { throw 'Go build failed' }
@@ -48,15 +51,15 @@ jobs:
             "$hash  $_"
           }
           $checksums | Set-Content -Encoding utf8 package/SHA256SUMS.txt
-          Compress-Archive -Path package/* -DestinationPath output/sblink-windows-x64.zip
-          $zipHash = (Get-FileHash -Algorithm SHA256 output/sblink-windows-x64.zip).Hash.ToLowerInvariant()
-          "$zipHash  sblink-windows-x64.zip" | Set-Content -Encoding utf8 output/sblink-windows-x64.zip.sha256
+          Compress-Archive -Path package/* -DestinationPath "output/$zipName"
+          $zipHash = (Get-FileHash -Algorithm SHA256 "output/$zipName").Hash.ToLowerInvariant()
+          "$zipHash  $zipName" | Set-Content -Encoding utf8 "output/$zipName.sha256"
       - name: Attach files to published release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          gh release upload "$env:RELEASE_TAG" output/sblink-windows-x64.zip output/sblink-windows-x64.zip.sha256 --clobber
+          $zipName = "sblink-$($env:RELEASE_TAG)-x64.zip"
+          gh release upload "$env:RELEASE_TAG" package/sblink.exe "output/$zipName" "output/$zipName.sha256" --clobber
           if ($LASTEXITCODE -ne 0) { throw 'Release upload failed' }

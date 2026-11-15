@@ -113,7 +113,7 @@ the published source tree.
 ## Automatic builds and releases
 
 GitHub Actions builds Windows x64 when a release is published. Each build runs vet and formatting
-checks, then attaches the ZIP and its SHA-256 checksum to the release for ongoing distribution.
+checks, then attaches the executable, a versioned ZIP, and its SHA-256 checksum to the release.
 Pushing source changes does not start a build.
 
 To publish an update:
@@ -123,7 +123,7 @@ To publish an update:
 3. Create a new tag targeting `main`; start with `v1.5` and use a new tag for every update,
    such as `v1.5.1` for a fix or `v1.6` for a larger update.
 4. Enter the release title and notes, then choose Publish release.
-5. Wait for Build Windows release to finish. Download `sblink-windows-x64.zip` from
+5. Wait for Build Windows release to finish. Download `sblink-v1.5-x64.zip` for version `v1.5` from
    the release Assets section, then use that ZIP for your Flightsim.to upload.
 
 ## License
