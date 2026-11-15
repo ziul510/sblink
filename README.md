@@ -6,7 +6,7 @@ There are no Go modules to download and no Python or Go installation is needed t
 ## Use
 
 Download the Windows ZIP from the distribution page, extract it to a writable folder,
-and double-click `sblink.exe`. Developers can build it with `build.ps1`.
+and double-click `sblink.exe`. Developers can build it with Go using the command below.
 Without a config file it opens the five-step console setup wizard.
 With a config file it starts the daemon in the configured hidden or visible mode.
 Setup creates **sblink Run.lnk** and **sblink Setup.lnk** beside the executable so both
@@ -96,16 +96,16 @@ Windows startup and tray features are unavailable there, and junction creation f
 Developers need Go 1.24 or newer. Only the standard library is used, so vendoring is unnecessary.
 
 ```powershell
-.\build.ps1
+go build -trimpath -ldflags "-H=windowsgui -s -w" -o sblink.exe .
 go vet ./...
 gofmt -l .
 ```
 
-`build.ps1` sets `CGO_ENABLED=0`, `GOOS=windows`, and `GOARCH=amd64` and builds the GUI
-PE subsystem so hidden launches do not flash a console. The application allocates native
+Run the build command on Windows x64 with `CGO_ENABLED=0`. The GUI PE subsystem
+prevents hidden launches from flashing a console. The application allocates native
 consoles explicitly for console modes. A normal `go build` is useful for development but
 does not provide the release build's hidden launch behavior.
-The public repository contains production Go source, build tooling, and user documentation.
+The public repository contains production Go source and user documentation.
 Development tests, recorded fixtures, and the historical Python implementation are kept outside
 the published source tree.
 
@@ -113,4 +113,3 @@ the published source tree.
 
 MIT with Commons Clause License Condition v1.0; see [LICENSE](LICENSE).
 The source is available for review and modification subject to those terms.
-See [PUBLISHING.md](PUBLISHING.md) for release packaging.
