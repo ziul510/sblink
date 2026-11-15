@@ -1,18 +1,18 @@
 # sblink for Go
 
-A portable SimBrief linker for MSFS on Windows x64. The Go rewrite starts at version `v1.5`.
+A portable SimBrief linker for MSFS on Windows x64.
 The release is one `sblink.exe`.
-There are no Go modules to download and no Python or Go installation is needed to use it.
+There are no Go modules to download and no Go installation is needed to use it.
 
 ## Use
 
-Download the Windows ZIP from the distribution page, extract it to a writable folder,
+Download the Windows exe (or zip) from the distribution page, extract it to a folder,
 and double-click `sblink.exe`. Developers can build it with Go using the command below.
-Without a config file it opens the five-step console setup wizard.
-With a config file it starts the daemon in the configured hidden or visible mode.
+Without a config file it opens the five-step console setup wizard
+With a config file it starts the daemon in the configured hidden or visible mode
 Setup creates **sblink Run.lnk** and **sblink Setup.lnk** beside the executable so both
-modes are available from File Explorer. Those shortcuts are generated at runtime.
-If you move the executable later, run setup to recreate its shortcuts and startup entry.
+modes are available from File Explorer. Those shortcuts are generated at runtime
+If you move the executable later, run setup to recreate its shortcuts and startup entry
 
 From a console:
 
@@ -26,43 +26,34 @@ From a console:
 .\sblink.exe reset
 ```
 
-- `setup` runs the interactive wizard. Nothing is downloaded or installed.
-- `run` launches a separate daemon and returns. Only one daemon per executable folder runs.
-- `status` displays configuration, last processed identifiers, and mappings.
-- `manual` polls once using the same new-plan decision as the daemon.
-- `link` fetches and processes the current plan even if already processed.
-- `unlink` removes only links with a regular `.sblink` marker in their target.
-- `reset` backs up app config, mappings, and all three logs to `backup/` and resets preferences.
-  Quit the daemon first. `prepare_setup` is an alias. It does not change existing junctions,
-  remove the Windows startup entry, or delete the Start Menu shortcut.
+- `setup` runs the interactive wizard. Nothing is downloaded or installed
+- `run` launches a separate daemon and returns. Only one daemon per executable folder runs
+- `status` displays configuration, last processed identifiers, and mappings
+- `manual` polls once using the same new-plan decision as the daemon
+- `link` fetches and processes the current plan even if already processed
+- `unlink` removes only links with a regular `.sblink` marker in their target
+- `reset` backs up app config, mappings, and all three logs to `backup/` and resets preferences
 
 The tray menu contains **Run setup**, **Show**, **Link Addons**, **Unlink Addons**, and **Quit**.
 **Show** opens a native Windows console with the existing log and new lines as they arrive.
-Closing that console leaves the daemon running. Quitting the daemon closes its log viewers.
-`logs` also opens this console directly. No widget toolkit or webview is used.
+Closing that console leaves the daemon running.
+`logs` also opens this console directly.
 Visible sessions start the built-in Windows command processor with a new console so Windows
-delegates to the user's default terminal application. The same executable then attaches to that console.
-The app does not choose a terminal executable or change terminal preferences.
-Console commands invoked from an existing terminal keep that terminal and redirected streams.
+delegates to the user's default terminal application
 Tray setup opens a separate console so canceling setup does not interrupt a visible daemon.
-All five wizard steps and the completion screen reproduce the Python panels, centered banner,
-colors, spacing, prompts, and screen clearing. Layout follows the current terminal width.
-The interactive wizard always uses its original color palette. Redirected output stays free of color
+The interactive wizard always uses its color palette. Redirected output stays free of color
 and clearing sequences. Terminal width comes from the live console, including delegated terminals.
 Community folder, addon library paths, and SimBrief ID require a nonblank answer unless a saved value exists.
 
 ## Data and compatibility
 
-Config, mappings, logs, locks, and portable shortcuts live beside the running executable.
+Config, mappings, logs, locks, and portable shortcuts live beside the running executable
 Use absolute paths in setup. Missing paths are saved with a warning, as in the reference.
-Daemon and manual startup require a Community directory and every configured library directory.
+Daemon and manual startup require a Community directory and every configured library directory
 
-`sblink_config.json` preserves the Python keys, insertion order, four-space indentation,
-UTF-8, Windows line endings, JSON `null` identifiers, and no final newline. Existing unknown
-keys survive updates. `mappings.json` keeps the same three example entries and uppercase lookup.
-Existing Python config and mappings can be copied beside the executable.
+Existing keys survive updates. `mappings.json` keeps the same three example entries and uppercase lookup
 Existing mappings with invalid JSON, encoding, or values are preserved and reported as errors.
-Fix the file or use `reset`; invalid mappings never silently become automatic search results.
+Fix the file or use `reset`, as invalid mappings are not searched.
 
 The daemon reloads settings before each poll or tray action. Changes to the account or addon paths
 trigger a fresh link cycle even for an unchanged plan. Poll interval changes affect the following wait.
@@ -85,12 +76,9 @@ Aircraft expansion, per-category shallowest BFS matches, and substring matching 
 follow the Python version. For example, A321 also searches A320, 321, and 320; DAL can match
 “Dallas”. A manual mapping returns only its mapped folder from that library, suppressing other
 categories there. A missing mapped folder falls back to BFS. This is not a livery-only filter.
-Mappings accept nested relative patterns, `*`, `?`, recursive `**` path components, and Python
-character classes such as `[!s]`. Searches follow directory junctions, prevent ancestor cycles,
+Mappings accept nested relative patterns, `*`, `?`, recursive `**` path components.
+Searches follow directory junctions, prevent ancestor cycles,
 and retain distinct aliases. An unavailable library entry fails the scan and leaves the plan retryable.
-
-Linux and macOS builds retain the console, HTTP, configuration, and polling paths.
-Windows startup and tray features are unavailable there, and junction creation fails cleanly.
 
 ## Build and verify
 
@@ -115,16 +103,6 @@ the published source tree.
 GitHub Actions builds Windows x64 when a release is published. Each build runs vet and formatting
 checks, then attaches the executable, a versioned ZIP, and its SHA-256 checksum to the release.
 Pushing source changes does not start a build.
-
-To publish an update:
-
-1. Push your source changes to `main`.
-2. Open the repository Releases page and choose Draft a new release.
-3. Create a new tag targeting `main`; start with `v1.5` and use a new tag for every update,
-   such as `v1.5.1` for a fix or `v1.6` for a larger update.
-4. Enter the release title and notes, then choose Publish release.
-5. Wait for Build Windows release to finish. Download `sblink-v1.5-x64.zip` for version `v1.5` from
-   the release Assets section, then use that ZIP for your Flightsim.to upload.
 
 ## License
 
