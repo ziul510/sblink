@@ -1,4 +1,4 @@
-# sblink for Go
+# sblink
 
 A portable SimBrief linker for MSFS on Windows x64.
 The release is one `sblink.exe`.
