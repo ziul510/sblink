@@ -1,0 +1,3 @@
+* text=auto eol=lf
+sblink-V1.2/** -text -whitespace
+testdata/setup-*.txt -text whitespace=-blank-at-eof

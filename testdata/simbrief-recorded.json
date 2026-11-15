@@ -1,0 +1,17 @@
+{
+  "params": {
+    "time_generated": "1794757476"
+  },
+  "origin": {
+    "icao_code": "KMIA"
+  },
+  "destination": {
+    "icao_code": "KLAX"
+  },
+  "aircraft": {
+    "icaocode": "A321"
+  },
+  "general": {
+    "icao_airline": "DAL"
+  }
+}
