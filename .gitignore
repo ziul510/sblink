@@ -17,3 +17,9 @@
 **/mappings.json
 **/sblink.log*
 **/backup/
+
+/sblink-V1.2/
+/testdata/
+/*_test.go
+/CODE_REVIEW.md
+/VERIFICATION.md

@@ -2,7 +2,6 @@
 
 A portable SimBrief linker for MSFS on Windows x64. The release is one `sblink.exe`.
 There are no Go modules to download and no Python or Go installation is needed to use it.
-The Python reference remains untouched in `sblink-V1.2/`.
 
 ## Use
 
@@ -99,8 +98,6 @@ Developers need Go 1.24 or newer. Only the standard library is used, so vendorin
 ```powershell
 .\build.ps1
 go vet ./...
-go test ./...
-go test -race ./...
 gofmt -l .
 ```
 
@@ -108,23 +105,9 @@ gofmt -l .
 PE subsystem so hidden launches do not flash a console. The application allocates native
 consoles explicitly for console modes. A normal `go build` is useful for development but
 does not provide the release build's hidden launch behavior.
-The race test needs a C compiler on the developer machine; the release executable does not.
-
-Tests build and run the actual release-style executable. Windows integration tests briefly
-change only the `sblink` Run value and restore its exact previous bytes and registry type.
-They serialize this operation across test processes and isolate Start Menu writes under a
-temporary `APPDATA`. They open temporary consoles and a native tray menu and close them.
-All junction writes occur under test temp directories. The real Community folder is never changed.
-
-Optional read-only checks use the supplied SimBrief account and addon libraries:
-
-```powershell
-$env:SBLINK_LIVE = '1'
-go test -run '^TestLiveLibraries$' -v
-Remove-Item Env:SBLINK_LIVE
-```
-
-See [VERIFICATION.md](VERIFICATION.md) for behavior coverage, intentional fixes, and remaining checks.
+The public repository contains production Go source, build tooling, and user documentation.
+Development tests, recorded fixtures, and the historical Python implementation are kept outside
+the published source tree.
 
 ## License
 

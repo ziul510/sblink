@@ -1,9 +1,9 @@
 # Publishing
 
-`Publish/` contains the end-user release: the Windows x64 executable, user guide,
-license, and checksums. ZIP the contents of this folder, without adding source,
-personal config, mappings, logs, or generated shortcuts. A ready-made archive is
-created as `sblink-windows-x64.zip` at the repository root.
+Build with `build.ps1`, then prepare a local `Publish/` folder containing the Windows x64
+executable from `dist/`, a user guide, `LICENSE` renamed to `LICENSE.txt`, and checksums.
+ZIP the contents as `sblink-windows-x64.zip`. Exclude source, personal config, mappings,
+logs, and generated shortcuts. Release folders and archives are not tracked in Git.
 
 Publish this as a standalone utility. Users extract it to a writable folder;
 it is not a Community-folder package and does not support Community auto-install.
@@ -15,5 +15,5 @@ Clause License Condition v1.0. This combination is source-available and should
 not be described as OSI-approved open source. See LICENSE and
 https://commonsclause.com/ for the condition text.
 
-The Python directory remains an archival reference. The Go release does not
-execute it. Distribution binaries and user runtime files are excluded from Git.
+The public source tree excludes the historical Python implementation, tests, fixtures,
+internal audit reports, distribution binaries, and user runtime files.
