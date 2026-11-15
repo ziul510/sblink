@@ -11,18 +11,10 @@
 /coverage.out
 /Publish/
 /sblink-windows-x64.zip
-**/__pycache__/
-**/*.pyc
 **/sblink_config.json
 **/mappings.json
 **/sblink.log*
 **/backup/
 
-/sblink-V1.2/
-/testdata/
-/*_test.go
-/CODE_REVIEW.md
-/VERIFICATION.md
 
 /build.ps1
-/PUBLISHING.md
