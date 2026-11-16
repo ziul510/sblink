@@ -106,5 +106,5 @@ Pushing source changes does not start a build.
 
 ## License
 
-MIT with Commons Clause License Condition v1.0; see [LICENSE](LICENSE).
+Apache License 2.0; see [LICENSE](LICENSE).
 The source is available for review and modification subject to those terms.
