@@ -44,8 +44,8 @@ jobs:
           New-Item -ItemType Directory -Path package, output | Out-Null
           go build -trimpath -ldflags '-H=windowsgui -s -w' -o package/sblink.exe .
           if ($LASTEXITCODE -ne 0) { throw 'Go build failed' }
-          Copy-Item LICENSE package/LICENSE.txt
-          $checksums = 'sblink.exe', 'LICENSE.txt' | ForEach-Object {
+          Copy-Item LICENSE package/LICENSE
+          $checksums = 'sblink.exe', 'LICENSE' | ForEach-Object {
             $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath "package/$_").Hash.ToLowerInvariant()
             "$hash  $_"
           }
