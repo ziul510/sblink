@@ -1,0 +1,64 @@
+name: Build Windows release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      CGO_ENABLED: '0'
+      GOOS: windows
+      GOARCH: amd64
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version: stable
+          check-latest: true
+          cache: false
+      - name: Check source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          go vet ./...
+          if ($LASTEXITCODE -ne 0) { throw 'Go vet failed' }
+          $unformatted = gofmt -l .
+          if ($unformatted) { throw "Unformatted source: $unformatted" }
+      - name: Build and package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:RELEASE_TAG -cnotmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$') { throw 'Release tag contains unsupported filename characters' }
+          $zipName = "sblink-$($env:RELEASE_TAG)-x64.zip"
+          New-Item -ItemType Directory -Path package, output | Out-Null
+          go build -trimpath -ldflags '-H=windowsgui -s -w' -o package/sblink.exe .
+          if ($LASTEXITCODE -ne 0) { throw 'Go build failed' }
+          Copy-Item LICENSE package/LICENSE
+          $checksums = 'sblink.exe', 'LICENSE' | ForEach-Object {
+            $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath "package/$_").Hash.ToLowerInvariant()
+            "$hash  $_"
+          }
+          $checksums | Set-Content -Encoding utf8 package/SHA256SUMS.txt
+          Compress-Archive -Path package/* -DestinationPath "output/$zipName"
+          $zipHash = (Get-FileHash -Algorithm SHA256 "output/$zipName").Hash.ToLowerInvariant()
+          "$zipHash  $zipName" | Set-Content -Encoding utf8 "output/$zipName.sha256"
+      - name: Attach files to published release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          $zipName = "sblink-$($env:RELEASE_TAG)-x64.zip"
+          gh release upload "$env:RELEASE_TAG" package/sblink.exe "output/$zipName" "output/$zipName.sha256" --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Release upload failed' }

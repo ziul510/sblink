@@ -1,0 +1,20 @@
+/dist/
+/sblink.exe
+/sblink_config.json
+/mappings.json
+/sblink.log*
+/.sblink-*.lock
+/.sblink-*.tmp
+/sblink Run.lnk
+/sblink Setup.lnk
+/backup/
+/coverage.out
+/Publish/
+/sblink-windows-x64.zip
+**/sblink_config.json
+**/mappings.json
+**/sblink.log*
+**/backup/
+
+
+/build.ps1
