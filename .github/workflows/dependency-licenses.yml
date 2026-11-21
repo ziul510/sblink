@@ -1,0 +1,131 @@
+# Copyright 2026 ziul510
+# SPDX-License-Identifier: Apache-2.0
+name: Dependabot licenses
+run-name: "Dependabot licenses for ${{ github.event.pull_request.number || inputs.pull_request || 'baseline' }}"
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - go.mod
+      - go.sum
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/dependency-licenses.yml
+      - scripts/dependency_licenses.py
+      - THIRD_PARTY_NOTICES
+      - third_party/licenses.csv
+      - go.mod
+      - go.sum
+  workflow_dispatch:
+    inputs:
+      pull_request:
+        description: Open Dependabot PR number. Leave blank to verify the baseline.
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: dependency-licenses-${{ github.event.pull_request.number || inputs.pull_request || 'baseline' }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    if: >-
+      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) ||
+      (github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.head_ref, 'dependabot/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      head: ${{ steps.fetch.outputs.head }}
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      GOWORK: 'off'
+      GOTOOLCHAIN: local
+      GOPROXY: https://proxy.golang.org
+      GOSUMDB: sum.golang.org
+    steps:
+      # Keep the scanner on the trusted branch and read only manifests from the PR
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Fetch the exact PR commit
+        if: github.event.pull_request.number || inputs.pull_request
+        id: fetch
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pull_request }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$PR_HEAD" ]]; then
+            PR_HEAD=$(python scripts/dependency_licenses.py target "$PR_NUMBER")
+          fi
+          echo "head=$PR_HEAD" >> "$GITHUB_OUTPUT"
+          auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          echo "::add-mask::$auth"
+          GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0="http.$GITHUB_SERVER_URL/.extraheader" \
+            GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $auth" git fetch --no-tags origin "$PR_HEAD"
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version: stable
+          check-latest: true
+          cache: false
+      - name: Check dependency licenses
+        env:
+          PR_HEAD: ${{ steps.fetch.outputs.head }}
+        run: |
+          set -euo pipefail
+          export GOBIN="$RUNNER_TEMP/license-tools"
+          go install github.com/google/licenseclassifier/v2/tools/identify_license@v2.0.0
+          export PATH="$GOBIN:$PATH"
+          if [[ -n "$PR_HEAD" ]]; then
+            python scripts/dependency_licenses.py audit "$PR_HEAD" "$RUNNER_TEMP/license-result"
+          else
+            python scripts/dependency_licenses.py verify-baseline
+          fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: steps.fetch.outputs.head
+        with:
+          name: license-result
+          path: ${{ runner.temp }}/license-result/result.json
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
+
+  publish:
+    needs: scan
+    if: >-
+      always() && (github.event.pull_request.number || inputs.pull_request) &&
+      (needs.scan.result == 'success' || needs.scan.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        if: needs.scan.result == 'success'
+        with:
+          name: license-result
+          path: ${{ runner.temp }}/license-result
+      - name: Publish findings and update the Dependabot branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pull_request }}
+          PR_HEAD: ${{ needs.scan.outputs.head || github.event.pull_request.head.sha }}
+          SCAN_RESULT: ${{ needs.scan.result }}
+        run: python scripts/dependency_licenses.py publish "$RUNNER_TEMP/license-result" "$SCAN_RESULT"
